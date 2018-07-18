@@ -1,0 +1,92 @@
+=pod
+
+=head1 NAME
+
+pwcheckd - check users passwords transmitted on a UNIX socket
+
+=head1 SYNOPSIS
+
+=over 12
+
+=item B<pwcheckd> [B<-hvVF>] B<-s> I<name>:I<type>:F<path> [B<-s> I<name1>:I<type1>:F<path1>]
+
+=back
+
+=head1 DESCRIPTION
+
+B<pwcheckd> waits for connections on one or more unix sockets. When
+it receives such a connection, it performs an authentication for the peer that initiated
+the connection. The way this authentication is done depends on a type associated with each 
+socket based on the daemon's command line. Two types of sockets are supported at this point :
+
+=over 12
+
+=item B<self>
+
+When a new connection is received on a B<self> socket, the daemon retrieves the connecter's 
+uid from the socket credentials, and reads a password on the connected socket. It then tries to authenticate
+the user associated to that uid with that password, using the underlying PAM system.
+If the authentication is successful, it writes a 'Y' to the connected socket before 
+closing it. Otherwise, a 'N' is written before the socket is closed.
+
+When running the daemon was compiled with TCB support, the authentication manager takes the
+identity of the connecting peer as soon as it is retrieved from the socket. Otherwise, the
+authentication is run entirely as root.
+
+=item B<X11>
+
+When a new connection is received on a B<X11> socket, the daemon reads an arbitrary (at most
+64 bytes long) service name on the socket, then runs an external script, which retrieves pops up
+a graphical window to retrieve the password of the currently logged-in X11 user.
+The external script is run as root, but may then drop its privileges to those of the current 
+X11 user.
+
+=back
+
+Note that B<pwcheckd> limits the number of simultaneous connections on any given socket to
+4 (by socket). Reading the password on a connected B<self> type socket times out after 2 seconds.
+The external command run for a B<X11> type socket times out after one minute.
+
+=head1 OPTIONS
+
+B<pwcheckd> supports the following options:
+
+=over 12
+
+=item B<-v>
+
+Display version number and exit.
+
+=item B<-h>
+
+Display help and exit.
+
+=item B<-V>
+
+Be more verbose in log output.
+
+=item B<-F>
+
+Run in foreground.
+
+=item B<-s> I<name>:I<type>:F<path>
+
+Use F<path> as a listening socket, named I<name> (free-form internal identifier). One such argument is mandatory
+for running the daemon. The argument can be specified several times to set up listening on different sockets.
+The only supported type at this point is B<self>.
+
+=back
+
+=head1 FILES
+
+B<pwcheckd> uses the pam stack defined in F</etc/pam.d/pwcheckd> to authenticate users.
+
+=head1 AUTHOR 
+
+Vincent Strubel <L<clipos@ssi.gouv.fr>>
+
+=head1 SEE ALSO
+
+L<pam(8)|pam>, L<tcb(5)|tcb>
+ 
+=cut

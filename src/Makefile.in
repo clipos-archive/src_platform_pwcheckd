@@ -1,0 +1,95 @@
+################# configure part ##############################
+
+PWCHECKD_TCB = @tcb@
+PWCHECKD_SYSLOG = @syslog@
+PW_TIMEOUT = @PW_TIMEOUT@
+TCB_GROUP = @TCB_GROUP@
+
+CC = @CC@
+srcdir = @srcdir@
+SHELL = @SHELL@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@ 
+PREFIX = @prefix@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+sbindir = @sbindir@
+
+
+PWCHECKD_SRC := pwcheckd.c checker.c
+PWCHECKD := pwcheckd
+PWCHECK_X11 := pwcheck_x11
+EXES := ${PWCHECKD} ${PWCHECK_X11}
+EXES_CLEAN := ${PWCHECKD}
+
+.PHONY: all 
+
+all: build
+
+###############################################################
+ifndef VERBOSE
+MAKEFLAGS += -s --no-print-directory
+ECHO = echo
+else 
+ECHO = echo > /dev/null
+endif
+
+OBJS_DIR ?= obj
+PWCHECKD_OBJFILES := ${foreach file, ${patsubst %.c,%.o,${PWCHECKD_SRC}}, ${OBJS_DIR}/${file}}
+
+DEPS_DIR = ${OBJS_DIR}/.deps
+PWCHECKD_DEPFILES := ${foreach file, ${basename ${PWCHECKD_SRC}}, ${DEPS_DIR}/${file}.d}
+
+OBJFILES := ${PWCHECKD_OBJFILES} 
+DEPFILES := ${PWCHECKD_DEPFILES} 
+
+ifeq (${PWCHECKD_SYSLOG}, yes)
+CFLAGS += -DUSE_SYSLOG
+endif
+ifeq (${PWCHECKD_TCB}, yes)
+CFLAGS += -DUSE_TCB -DTCB_GROUP=${TCB_GROUP}
+endif
+ifneq (${PW_TIMEOUT}, 0)
+CFLAGS += -DPW_TIMEOUT=${PW_TIMEOUT}
+endif
+
+CONFIG_BASE ?= /etc/jails
+CFLAGS += -DVERSION=${VERSION} -DSBINDIR=${sbindir}
+LDFLAGS += -lpam
+
+
+###############################################################
+.PHONY: build clean mrproper maintainer-clean
+
+${OBJS_DIR}:
+	mkdir -p ${OBJS_DIR}
+
+${DEPS_DIR}:
+	mkdir -p ${DEPS_DIR}
+
+${OBJS_DIR}/%.o:%.c Makefile
+	@${ECHO} "        CC                $<"
+	$(CC) $(CFLAGS) $(IFLAGS) -MT $@ -MD -MP -MF ${DEPS_DIR}/$*.d -c -o $@ $<
+
+${PWCHECKD}: ${PWCHECKD_OBJFILES}
+	@${ECHO} "        LD                $@"
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) 
+
+build: ${OBJS_DIR} ${DEPS_DIR} ${EXES}
+
+install: build
+	list='$(EXES)'; for exe in $$list; do \
+		${ECHO} "        install -D $$exe ${DESTDIR}${sbindir}/$$exe" ;\
+		install -D $$exe ${DESTDIR}${sbindir}/$$exe ;\
+	done
+
+clean:
+	@${ECHO} "        CLEAN             ${EXES_CLEAN} ${OBJFILES}"
+	rm -f ${EXES_CLEAN} ${OBJFILES} ${DEPFILES} 
+
+mrproper: clean
+	rmdir ${DEPS_DIR} ${OBJS_DIR}
+	rm -f Makefile
+
+
+-include ${DEPFILES}

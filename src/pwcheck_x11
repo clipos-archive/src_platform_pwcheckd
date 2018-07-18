@@ -1,0 +1,41 @@
+#!/bin/sh
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Copyright © 2007-2018 ANSSI. All Rights Reserved.
+
+SERVICE="${1}"
+SOCKNAME="${2}"
+
+function error() {
+	echo "${1}" >&2
+	exit 1
+}
+
+if [[ -z "${SOCKNAME}" ]]; then
+	error "Not enough arguments"
+fi
+
+CURRENT_USER="$(last -w -f /var/run/utmp | awk '$2 ~ /^:0$/ { print $1 }' | head -n 1)"
+[[ -n "${CURRENT_USER}" ]] || error "Could not retrieve current user"
+	
+CURRENT_UID=$(id -u ${CURRENT_USER})
+[[ -n "${CURRENT_UID}" ]] || error "Could not retrieve current uid"
+
+XAUTHORITY="/home/user/.Xauthority"
+
+XDIALOG_TITLE="Authentification ${SERVICE}"
+XDIALOG_MSG="Le service ${SERVICE} demande une authentification sur l'interface ${SOCKNAME}.
+Veuillez saisir votre mot de passe."
+XDIALOG_HELP="Ce message est affiché lorsqu'une application exécutée au sein d'une cage CLIP demande auprès du socle CLIP l'authentification de l'utilisateur propriétaire de la session graphique courante.
+Attention, la demande d'authentification expire après une minute, même si cette fenêtre ne disparaît pas."
+
+PASS="$(vsctl user enter -u ${CURRENT_UID} -- /usr/local/bin/xdialog.sh "${XAUTHORITY}" \
+	--left --wrap --stdout --title "${XDIALOG_TITLE}" --help "${XDIALOG_HELP}" --password \
+	--inputbox "${XDIALOG_MSG}" 12 80)"
+
+if [[ $? -ne 0 || -z "${PASS}" ]]; then
+	error "Xdialog failed" 
+fi
+
+printf "${CURRENT_USER}\r\n${PASS}"
+
+exit 0

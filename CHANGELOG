@@ -1,0 +1,78 @@
+# CLIP ChangeLog for sys-auth/pwcheckd
+
+*pwcheckd-1.1.7 (05 Sep 2014)
+
+  05 Sep 2014; Tony Cheneau <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.7.ebuild, -pwcheckd-1.1.6.ebuild:
+  Fix currently logged user detection. A change in last command behavior
+  prompted a fix.
+
+*pwcheckd-1.1.6 (07 Aug 2014)
+
+  07 Aug 2014; Yves-Alexis Perez <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.6.ebuild, -pwcheckd-1.1.5-r1.ebuild:
+  Fix implicit size_t -> int cast on amd64.
+
+*pwcheckd-1.1.5-r1 (06 Jan 2011)
+  06 Jan 2011; Benjamin Morin <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.5-r1.ebuild, -pwcheckd-1.1.5.ebuild:
+  Removed paxctl privileges (became irrelevant since the PKCS11
+  library is the client of the p11 proxy).
+
+*pwcheckd-1.1.5 (09 Nov 2010)
+
+  09 Nov 2010; Vincent Strubel <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.5.ebuild, -pwcheckd-1.1.4-r1.ebuild:
+  Minor fix to XAUTHORITY path in pwcheck_x11 (unused AFAIK).
+
+*pwcheckd-1.1.4-r1 (08 Nov 2010)
+  13 jul 2010; Benjamin Morin <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.4-r1.ebuild, -pwcheckd-1.1.4.ebuild:
+  Modified the pam configuration (added pam_wheel module to
+  choose the correct authentication method depending on the
+  user belonging to pkauth group.
+
+*pwcheckd-1.1.4 (13 Jul 2010)
+
+  13 jul 2010; Benjamin Morin <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.4.ebuild, -pwcheckd-1.1.3.ebuild:
+  Modified pwcheckd pam configuration to support smartcard
+  authentication; modified the default timeout value
+  (PW_TIMEOUT_DEFAULT) in checker.c.
+
+*pwcheckd-1.1.3 (18 Mar 2009)
+
+  18 Mar 2009; Vincent Strubel <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.3.ebuild, -pwcheckd-1.1.2.ebuild:
+  Fix gcc-4 compilation.
+
+*pwcheckd-1.1.2 (26 Dec 2008)
+
+  26 Dec 2008; Vincent Strubel <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.2.ebuild, -pwcheckd-1.1.1.ebuild:
+  Add support for X11 authentication socket type.
+
+*pwcheckd-1.1.1 (23 Dec 2008)
+
+  23 Dec 2008; Vincent Strubel <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.1.ebuild, -pwcheckd-1.1.0.ebuild:
+  Fix zombie childs.
+
+*pwcheckd-1.1.0 (22 Dec 2008)
+
+  22 Dec 2008; Vincent Strubel <clipos@ssi.gouv.fr>
+  +pwcheckd-1.1.0.ebuild, -pwcheckd-1.0.1.ebuild:
+  New code, supports typed sockets, multiple sockets and multiple
+  connections.
+
+*pwcheckd-1.0.1 (02 Apr 2008)
+
+  02 Apr 2008; Vincent Strubel <clipos@ssi.gouv.fr>
+  +pwcheckd-1.0.1.ebuild, -pwcheckd-1.0.ebuild:
+  Add proper journalisation for PAM error codes.
+
+*pwcheckd-1.0 (12 Oct 2007)
+
+  12 Oct 2007; Vincent Strubel <clipos@ssi.gouv.fr>
+  +pwcheckd-1.0.ebuild, +files/pwcheckd.pam:
+  Initial import, brand new jailmaster lookalike:)

@@ -1,0 +1,92 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(src/pwcheckd.c)
+
+dnl Checks for programs.
+AC_PROG_CC
+
+[
+if test "x$GCC" = "xyes"; then
+  CFLAGS="$CFLAGS -Wall -Wextra -Werror \
+	-Wstrict-prototypes -Wmissing-prototypes \
+	-Wcast-qual -Wcast-align -Wpointer-arith \
+	-Wnested-externs"
+fi
+]
+
+dnl Check for TCB option
+AC_ARG_ENABLE(tcb,   
+		AC_HELP_STRING([--enable-tcb], [use the TCB password verification scheme]),
+			[tcb=$enableval], [tcb=no])
+AC_SUBST(tcb)
+
+dnl Check for syslog option
+AC_ARG_ENABLE(syslog,   
+		AC_HELP_STRING([--enable-syslog], [syslog support]),
+			[syslog=$enableval], [syslog=no])
+AC_SUBST(syslog)
+
+AC_ARG_WITH(tcb-group,
+	AC_HELP_STRING([--with-tcb-group=<group>],
+		[use <group> as the tcb authentication group (default: shadow)]),
+		[TCB_GROUP=$withval],
+		[TCB_GROUP=shadow])
+AC_SUBST(TCB_GROUP)
+
+AC_ARG_WITH(timeout,
+	AC_HELP_STRING([--with-timeout=<seconds>],
+		[timeout authentications after <seconds> seconds (default: 4)]),
+		[PW_TIMEOUT=$withval],
+		[PW_TIMEOUT=0])
+AC_SUBST(PW_TIMEOUT)
+
+if test -z "$PKG_CONFIG"; then
+  PKG_CONFIG=pkg-config
+fi
+AC_SUBST(PKG_CONFIG)
+
+AC_MSG_CHECKING(that pkg-config runs)
+if "$PKG_CONFIG" --version > /dev/null 2>&1 ; then
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+  AC_MSG_ERROR([*** $PKG_CONFIG missing ***
+
+\'$PKG_CONFIG --version\' failed to run - make sure it is inside one of the
+directories in your PATH environment variable!
+
+pkg-config comes with the developement packages for GTK+-2.2, available at:
+
+    http://www.gtk.org])
+fi
+
+
+AC_DEFUN(BUILD_DEPENDS, [
+AC_MSG_CHECKING(that $1 (version >= $2) is installed)
+if "$PKG_CONFIG" --atleast-version=$2 $1 ; then
+  LDFLAGS="$LDFLAGS `$PKG_CONFIG --libs $1`"
+  CFLAGS="$CFLAGS `$PKG_CONFIG --cflags $1`"
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+  if "$PKG_CONFIG" --exists $1 ; then
+    ERRSTR=`"$PKG_CONFIG"  --modversion $1`
+    AC_MSG_ERROR(Current version is only $ERRSTR)
+  else
+    AC_MSG_ERROR(Package is not installed)
+  fi
+fi
+])
+
+BUILD_DEPENDS(clip, 1.2.5)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(unistd.h sys/socket.h sys/un.h)
+AC_CHECK_HEADERS(clip/clip.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_UID_T
+AC_TYPE_SIZE_T
+
+AC_OUTPUT(Makefile src/Makefile man/Makefile)

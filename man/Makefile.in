@@ -1,0 +1,47 @@
+ifndef VERBOSE
+MAKEFLAGS += -s --no-print-directory
+ECHO = echo
+else 
+ECHO = echo > /dev/null
+endif
+
+CC = @CC@
+srcdir = @srcdir@
+SHELL = @SHELL@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@ 
+PREFIX = @prefix@
+datarootdir = @datarootdir@
+prefix = @prefix@
+mandir = @mandir@
+
+PODS := pwcheckd.pod
+DIR := man8
+
+PAGES := ${foreach file, ${basename ${PODS}}, ${DIR}/${file}.8}
+
+
+build: $(PAGES)
+
+$(DIR):
+	mkdir -p $(DIR)
+
+${DIR}/%.8:%.pod $(DIR) Makefile
+	@${ECHO} "        POD2MAN           $<"
+	pod2man -c="CLIP Utilities" -s=8 -r="${PACKAGE}-${VERSION}" $< > $@
+	
+
+install:
+	list='$(PAGES)'; for page in $$list; do \
+		${ECHO} "        install -D $$page ${DESTDIR}${mandir}/$$page" ;\
+		install -D $$page ${DESTDIR}${mandir}/$$page ;\
+	done
+
+clean:
+	@${ECHO} "        CLEAN            $(PAGES)"
+	rm -f $(PAGES)
+
+mrproper: clean
+	rmdir $(DIR)
+	rm -f Makefile
+
